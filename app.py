@@ -1,3 +1,5 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 from flask import Flask,request,jsonify
 from tensorflow.keras.models import load_model
 import re
@@ -70,14 +72,21 @@ def get_sentiment(text):
 
 @app.route('/')
 def sentiment():
-    statement = request.args.get('q')
-    sentiment = get_sentiment(statement)
-    if sentiment == 1:
-        return jsonify({'sentiment': 'positive'})
+    q = request.args.get('q')
+    if q is not None:
+        statement = request.args.get('q')
+        sentiment = get_sentiment(statement)
+        if sentiment == 1:
+            return jsonify({'sentiment': 'positive'})
+        else:
+            return jsonify({'sentiment': 'negative'})
     else:
-        return jsonify({'sentiment': 'negative'})
+        return jsonify({'sentiment': 'query not provided'})
 
     
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    from waitress import serve
+    print("server started")
+    serve(app, host="0.0.0.0", port=8080)
+
