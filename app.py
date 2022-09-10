@@ -1,6 +1,8 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 from flask import Flask,request,jsonify
+from flask import  request, send_from_directory
+#from flask_cors import CORS, cross_origin
 from tensorflow.keras.models import load_model
 import re
 import pickle
@@ -12,7 +14,8 @@ stop_words = set(stopwords.words('english'))
 sentiment_model = load_model("Sentiment/")
 
 app = Flask(__name__)
-
+#app = Flask(__name__, static_folder="./frontend/build/", static_url_path="")
+#CORS(app)
 
 linebreaks        = "<br /><br />"
 alphaPattern      = "[^a-z0-9<>]"
@@ -68,8 +71,7 @@ def get_sentiment(text):
 
 
 
-
-
+# get api
 @app.route('/')
 def sentiment():
     q = request.args.get('q')
@@ -83,6 +85,10 @@ def sentiment():
     else:
         return jsonify({'sentiment': 'query not provided'})
 
+#@app.route("/", methods=["GET", "POST"])
+#@cross_origin()
+#def serve():
+#    return send_from_directory(app.static_folder, "index.html")
     
 
 if __name__ == '__main__':
