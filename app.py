@@ -1,6 +1,7 @@
+from crypt import methods
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
-from flask import Flask,request,jsonify
+from flask import Flask,request,jsonify,render_template
 from flask import  request, send_from_directory
 #from flask_cors import CORS, cross_origin
 from tensorflow.keras.models import load_model
@@ -68,22 +69,28 @@ def get_sentiment(text):
     pred = sentiment_model.predict(statement)
     pred = np.where(pred>=0.5, 1, 0)
     return pred[0][0]
+# at / route return a form to enter the statement and render the sentiment
 
 
 
-# get api
-@app.route('/')
+@app.route('/',methods=['GET','POST'])
 def sentiment():
-    q = request.args.get('q')
-    if q is not None:
-        statement = request.args.get('q')
-        sentiment = get_sentiment(statement)
-        if sentiment == 1:
-            return jsonify({'sentiment': 'positive'})
+    if request.method == 'POST':
+        q = request.form['q']
+        
+        if q is not None and q != '':
+            statement = q
+            sentiment = get_sentiment(statement)
+            if sentiment == 1:
+                output = {'sentiment': 'positive'}
+            else:
+                output = {'sentiment': 'negative'}
         else:
-            return jsonify({'sentiment': 'negative'})
+            output = {'sentiment': 'query not provided'}
+        return render_template('index.html',output=output,text=q)
     else:
-        return jsonify({'sentiment': 'query not provided'})
+        text = "Text"
+        return render_template('index.html',text=text,output="No query")
 
 #@app.route("/", methods=["GET", "POST"])
 #@cross_origin()
@@ -92,7 +99,5 @@ def sentiment():
     
 
 if __name__ == '__main__':
-    from waitress import serve
-    print("server started")
-    serve(app, host="0.0.0.0", port=8080)
+    app.run(debug=True)
 
